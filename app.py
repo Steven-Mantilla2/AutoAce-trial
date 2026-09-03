@@ -14,7 +14,6 @@ def check_password():
         st.session_state["authenticated"] = False
 
     if not st.session_state["authenticated"]:
-        # Center the login form on wider screens
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.title("AutoAce Trial - Dashboard Login")
@@ -31,6 +30,15 @@ def check_password():
     return True
 
 if check_password():
+    # Logout Control in Sidebar
+    with st.sidebar:
+        st.markdown("### 👤 User Session")
+        st.caption("Logged in as **autoace**")
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state["authenticated"] = False
+            st.rerun()
+        st.divider()
+
     st.title("AutoAce AI - Voice Tone & Noise Batch Evaluator")
     
     api_key = st.sidebar.text_input("Gemini API Key", type="password", value=os.environ.get("GEMINI_API_KEY", ""))
@@ -64,13 +72,11 @@ if check_password():
                         # Perform analysis via pipeline.py
                         analysis_result = analyze_audio(file_path, api_key)
                         
-                        # Store both parsed dict and json string
                         res_entry = {
                             "name": file_name,
                             "status": "SUCCESS",
                             "result_json": json.dumps(analysis_result)
                         }
-                        # Extract key metrics for clean dashboard display if result is valid dict
                         if isinstance(analysis_result, dict):
                             res_entry["tone"] = analysis_result.get("emotional_tone", "N/A")
                             res_entry["intensity"] = analysis_result.get("emotional_intensity", "N/A")
@@ -78,7 +84,6 @@ if check_password():
                         
                         results.append(res_entry)
                     except Exception as e:
-                        # Ensure single file failure doesn't break batch processing
                         results.append({
                             "name": file_name,
                             "status": "FAILED",
@@ -92,7 +97,7 @@ if check_password():
 
                 status_text.text("Batch processing complete!")
                 
-                # Top Metrics Dashboard
+                # Metrics Dashboard
                 df_results = pd.DataFrame(results)
                 st.divider()
                 
